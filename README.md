@@ -3,8 +3,6 @@
 **วิชา:** CP353002 Principles of Software Design
 **หัวข้อ:** การกำหนด (configure) `ViewResolver` ของ Spring Boot ที่ใช้ Thymeleaf เป็น view engine
 
-**จัดทำโดย:** ชื่อ-นามสกุล ____________________ รหัสนักศึกษา ____________________
-
 > แล็ปนี้ให้นักศึกษา **ลงมือสร้างโปรเจกต์เองทีละไฟล์** ตามขั้นตอนด้านล่าง แล้วอัปโหลดขึ้น GitHub ของตัวเอง
 > ไม่มีการต่อฐานข้อมูลใดๆ ทั้งหมดรันได้ด้วย static HTML + Thymeleaf ล้วนๆ
 
@@ -34,24 +32,26 @@
 
 ## 4. โครงสร้างโปรเจกต์ที่ต้องสร้าง
 
-ให้สร้างโฟลเดอร์และไฟล์ตามผังนี้ (เดี๋ยวจะไล่ทีละไฟล์ในหัวข้อถัดไป):
+ให้สร้างโฟลเดอร์และไฟล์ตามผังนี้ (จะสร้างด้วยวิธีไหนก็ได้ — พิมพ์คำสั่งใน terminal, คลิกขวา New Folder ใน IDE เช่น IntelliJ/VS Code, หรือสร้างผ่าน File Explorer/Finder — ผลลัพธ์ต้องได้โครงสร้างเดียวกันนี้ เดี๋ยวจะไล่อธิบายทีละไฟล์ในหัวข้อถัดไป):
 
 ```
 spring-thymeleaf-demo/
- ├── pom.xml
+ ├── pom.xml                                   <- ไฟล์ตั้งค่า Maven บอกว่าโปรเจกต์ต้องใช้ library อะไรบ้าง
  ├── .gitignore
- └── src/main/
-      ├── java/com/example/demo/
-      │    ├── DemoApplication.java
-      │    ├── config/ThymeleafConfig.java        <- custom ViewResolver ประกาศที่นี่
-      │    └── controller/HomeController.java
-      └── resources/
-           ├── application.properties
-           └── custom-templates/
-                └── home.html                       <- ไม่ได้อยู่ใน /templates/ ปกติ
+ └── src/main/                                 <- โครงสร้างมาตรฐานของ Maven/Spring Boot ซอร์สโค้ดหลักอยู่ใต้นี้เสมอ
+      ├── java/com/example/demo/                <- โฟลเดอร์ตาม package ของโค้ด Java (จุด "." ในชื่อ package แปลงเป็น "/")
+      │    ├── DemoApplication.java             <- คลาสหลัก จุดเริ่มรันโปรแกรม
+      │    ├── config/ThymeleafConfig.java       <- แยกโฟลเดอร์ config/ ไว้เก็บไฟล์ตั้งค่า (custom ViewResolver ประกาศที่นี่)
+      │    └── controller/HomeController.java   <- แยกโฟลเดอร์ controller/ ไว้เก็บ Controller ทั้งหมด
+      └── resources/                            <- ไฟล์ที่ไม่ใช่โค้ด Java เช่น ค่าคอนฟิก, template, รูปภาพ
+           ├── application.properties           <- ค่าคอนฟิกของแอป เช่น port ที่รัน
+           └── custom-templates/                <- โฟลเดอร์ที่กำหนดเอง ใช้แทน templates/ ซึ่งเป็นค่า default
+                └── home.html                    <- ไม่ได้อยู่ใน /templates/ ปกติ (นี่คือจุดสำคัญของแล็ป)
 ```
 
-สร้างโฟลเดอร์เปล่าด้วยคำสั่ง:
+**ทำไมต้องแยก `config/` กับ `controller/`:** เพื่อให้อ่านง่ายและสอดคล้องกับหลัก separation of concerns แบบเดียวกับที่ ViewResolver แยกหน้าที่ออกจาก Controller — โฟลเดอร์ `config/` เก็บเฉพาะ "การตั้งค่า" (`@Configuration` classes) ส่วน `controller/` เก็บเฉพาะ "ตัวรับ request" (`@Controller` classes) ไม่ปนกัน
+
+ตัวอย่างการสร้างโฟลเดอร์เปล่าด้วยคำสั่ง (ทางเลือกหนึ่ง ไม่บังคับต้องใช้วิธีนี้):
 
 ```bash
 mkdir -p spring-thymeleaf-demo/src/main/java/com/example/demo/config
@@ -59,6 +59,8 @@ mkdir -p spring-thymeleaf-demo/src/main/java/com/example/demo/controller
 mkdir -p spring-thymeleaf-demo/src/main/resources/custom-templates
 cd spring-thymeleaf-demo
 ```
+
+ถ้าใช้ IDE ก็สร้างโปรเจกต์ Maven เปล่าขึ้นมาก่อน แล้วคลิกขวาสร้างโฟลเดอร์ย่อยตามผังด้านบนได้เลย ขอแค่ path/ชื่อโฟลเดอร์ตรงกัน โปรเจกต์ก็จะรันได้เหมือนกัน
 
 ## 5. ขั้นตอนที่ 1 — `pom.xml`
 
@@ -297,3 +299,5 @@ git push
 - เนื้อหาต้นฉบับ: `springViewResolverConfiguration.ipynb`, `View in Spring Framework.pdf` (Punyphol Horata, College of Computing, KKU)
 - [Spring Framework — View Technologies docs](https://docs.spring.io/spring-framework/reference/web/webmvc-view.html)
 - [Thymeleaf official site](https://www.thymeleaf.org/)
+
+
