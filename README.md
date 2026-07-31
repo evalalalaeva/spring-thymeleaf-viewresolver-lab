@@ -253,7 +253,11 @@ Hello from Thymeleaf with a custom ViewResolver!
 
 ## 13. อัปโหลดขึ้น GitHub
 
-1. สร้าง repository ใหม่บน GitHub (เช่นชื่อ `spring-thymeleaf-viewresolver-lab`) — **ไม่ต้อง** ติ๊ก "Add a README file" เพราะเรามีอยู่แล้ว
+เลือกได้ 2 แบบ แล้วแต่ว่านักศึกษาเก็บงานแล็ปไว้ที่ไหน:
+
+**แบบ A — ทำเป็น repository แยกของตัวเอง**
+
+1. สร้าง repository ใหม่บน GitHub (เช่นชื่อ `spring-thymeleaf-viewresolver-lab`) จะติ๊กหรือไม่ติ๊ก "Add a README file" ก็ได้ — ถ้าติ๊กไว้ ให้ `git pull origin main --allow-unrelated-histories` ก่อน push เพื่อไม่ให้ชนกัน
 2. ที่เครื่องของนักศึกษา ในโฟลเดอร์ `spring-thymeleaf-demo/`:
 
 ```bash
@@ -265,7 +269,17 @@ git remote add origin https://github.com/<username>/<repo-name>.git
 git push -u origin main
 ```
 
-3. แนบลิงก์ repository ที่ส่งอาจารย์/ผู้ตรวจ
+**แบบ B — เก็บรวมไว้ใน repository เดียวกับแล็ปอื่นๆ (เช่น `lab/Lab06_spring-thymeleaf-demo`)**
+
+อย่ารัน `git init` ซ้ำข้างในโฟลเดอร์นี้ (จะกลายเป็น repo ซ้อน repo) แค่ก็อปโฟลเดอร์เข้าไปในที่เก็บแล็ปที่มีอยู่แล้ว แล้ว `git add`/`commit`/`push` จาก repo ใหญ่ตามปกติ
+
+```bash
+git add lab/Lab06_spring-thymeleaf-demo
+git commit -m "Add Lab06 spring-thymeleaf-demo"
+git push
+```
+
+3. แนบลิงก์ repository (หรือลิงก์โฟลเดอร์ย่อย) ที่ส่งอาจารย์/ผู้ตรวจ
 
 ## 14. ต่อยอด (ไม่บังคับ)
 
@@ -275,7 +289,8 @@ git push -u origin main
 
 ## 15. แบบทดสอบ
 
-คำถามท้ายแล็ป (ปรนัย + อัตนัย) อยู่ในไฟล์แยกต่างหาก: **`ViewResolver_Quiz.docx`**
+คำถามท้ายแล็ปอยู่ในไฟล์แยกต่างหาก: **`ViewResolver_Quiz.docx`** มี 3 ส่วน — ปรนัย, อัตนัย, และภาคปฏิบัติ (แก้โค้ดจริงแล้วแนบภาพหน้าจอ)
+ไฟล์นี้ไม่มีเฉลยอยู่ในนั้น (เฉลยเก็บแยกไว้ต่างหากสำหรับผู้ตรวจเท่านั้น) ทำเสร็จแล้วแนบไฟล์นี้ (พร้อมภาพหน้าจอ) ไปพร้อมกับลิงก์ repository
 
 ## อ้างอิง
 
