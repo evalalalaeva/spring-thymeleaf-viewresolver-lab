@@ -1,0 +1,284 @@
+# Lab: Custom ViewResolver ใน Spring Boot + Thymeleaf
+
+**วิชา:** CP353002 Principles of Software Design
+**หัวข้อ:** การกำหนด (configure) `ViewResolver` ของ Spring Boot ที่ใช้ Thymeleaf เป็น view engine
+
+**จัดทำโดย:** ชื่อ-นามสกุล ____________________ รหัสนักศึกษา ____________________
+
+> แล็ปนี้ให้นักศึกษา **ลงมือสร้างโปรเจกต์เองทีละไฟล์** ตามขั้นตอนด้านล่าง แล้วอัปโหลดขึ้น GitHub ของตัวเอง
+> ไม่มีการต่อฐานข้อมูลใดๆ ทั้งหมดรันได้ด้วย static HTML + Thymeleaf ล้วนๆ
+
+---
+
+## 1. โจทย์ของแล็ป
+
+ให้นักศึกษาศึกษาวิธีกำหนด `ViewResolver` ของ Spring Boot ที่ใช้ Thymeleaf โดยแทนที่จะใช้โฟลเดอร์ template
+เริ่มต้น (`/src/main/resources/templates/`) ให้สร้าง **ViewResolver แบบกำหนดเอง (custom)** ที่ชี้ไปยังโฟลเดอร์อื่น
+คือ `/src/main/resources/custom-templates/` แทน แล้วตอบคำถามท้ายแล็ปว่าใครเป็นผู้เรียกใช้ ViewResolver นี้ และเรียกเมื่อไร
+(คำถามอยู่ในไฟล์ข้อสอบแยกต่างหาก ดูหัวข้อ "แบบทดสอบ" ด้านล่าง)
+
+## 2. ทำไมเรื่องนี้ถึงสำคัญ (Principles of Software Design)
+
+`ViewResolver` เป็นตัวอย่างที่ดีของหลักการ **separation of concerns** และ **dependency inversion** ใน MVC:
+
+- Controller ไม่รู้จัก และไม่ควรรู้จัก path จริงของไฟล์ HTML บน disk — มันรู้แค่ "ชื่อ view" เชิงตรรกะ (logical view name) เช่น `"home"`
+- หน้าที่การแปลง "ชื่อ view" ไปเป็น "ไฟล์จริง" ถูกแยกออกมาเป็นอีก component หนึ่งคือ `ViewResolver`
+- เพราะแยกกันแบบนี้ เราจึงเปลี่ยน location ของ templates, เปลี่ยน naming convention, หรือสลับ template engine (Thymeleaf → FreeMarker → JSP) ได้ โดย **ไม่ต้องแก้โค้ด Controller เลยแม้แต่บรรทัดเดียว**
+
+## 3. สิ่งที่ต้องมีก่อนเริ่ม
+
+- JDK 17 ขึ้นไป
+- Maven
+- Git (และบัญชี GitHub)
+- ไม่ต้องติดตั้งหรือเชื่อมต่อฐานข้อมูลใดๆ
+
+## 4. โครงสร้างโปรเจกต์ที่ต้องสร้าง
+
+ให้สร้างโฟลเดอร์และไฟล์ตามผังนี้ (เดี๋ยวจะไล่ทีละไฟล์ในหัวข้อถัดไป):
+
+```
+spring-thymeleaf-demo/
+ ├── pom.xml
+ ├── .gitignore
+ └── src/main/
+      ├── java/com/example/demo/
+      │    ├── DemoApplication.java
+      │    ├── config/ThymeleafConfig.java        <- custom ViewResolver ประกาศที่นี่
+      │    └── controller/HomeController.java
+      └── resources/
+           ├── application.properties
+           └── custom-templates/
+                └── home.html                       <- ไม่ได้อยู่ใน /templates/ ปกติ
+```
+
+สร้างโฟลเดอร์เปล่าด้วยคำสั่ง:
+
+```bash
+mkdir -p spring-thymeleaf-demo/src/main/java/com/example/demo/config
+mkdir -p spring-thymeleaf-demo/src/main/java/com/example/demo/controller
+mkdir -p spring-thymeleaf-demo/src/main/resources/custom-templates
+cd spring-thymeleaf-demo
+```
+
+## 5. ขั้นตอนที่ 1 — `pom.xml`
+
+สร้างไฟล์ `pom.xml` ที่ root ของโปรเจกต์ ใส่ dependency แค่สองตัว: `spring-boot-starter-web` (สำหรับ DispatcherServlet/Spring MVC) และ `spring-boot-starter-thymeleaf` (template engine):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>spring-thymeleaf-demo</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.0</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+</project>
+```
+
+## 6. ขั้นตอนที่ 2 — `DemoApplication.java`
+
+`src/main/java/com/example/demo/DemoApplication.java` — จุดเริ่มต้นของแอป จะเป็นตัว start embedded Tomcat และลงทะเบียน DispatcherServlet ให้อัตโนมัติ:
+
+```java
+package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+}
+```
+
+## 7. ขั้นตอนที่ 3 — `config/ThymeleafConfig.java` (จุดสำคัญของแล็ป)
+
+นี่คือไฟล์ที่ **กำหนด custom ViewResolver** ให้ชี้ไปที่โฟลเดอร์ `custom-templates/` แทนค่า default `templates/`:
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring6.view.ThymeleafViewResolver;
+
+@Configuration
+public class ThymeleafConfig {
+
+    @Bean
+    public SpringResourceTemplateResolver templateResolver() {
+        SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
+        resolver.setPrefix("classpath:/custom-templates/"); // โฟลเดอร์ที่กำหนดเอง
+        resolver.setSuffix(".html");
+        resolver.setTemplateMode("HTML");
+        resolver.setCharacterEncoding("UTF-8");
+        resolver.setCacheable(false); // ปิด cache ระหว่าง dev
+        return resolver;
+    }
+
+    @Bean
+    public SpringTemplateEngine templateEngine(SpringResourceTemplateResolver templateResolver) {
+        SpringTemplateEngine engine = new SpringTemplateEngine();
+        engine.setTemplateResolver(templateResolver);
+        return engine;
+    }
+
+    @Bean
+    public ThymeleafViewResolver viewResolver(SpringTemplateEngine templateEngine) {
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setTemplateEngine(templateEngine);
+        viewResolver.setCharacterEncoding("UTF-8");
+        viewResolver.setOrder(1); // ลำดับความสำคัญ ถ้ามีหลาย ViewResolver ใน context เดียวกัน
+        return viewResolver;
+    }
+}
+```
+
+`setPrefix()` และ `setSuffix()` คือจุดที่กำหนดว่า logical view name จะถูกแปลงเป็น path ไฟล์จริงอย่างไร:
+ชื่อ view `"home"` + prefix `classpath:/custom-templates/` + suffix `.html`
+→ ไฟล์จริงคือ `classpath:/custom-templates/home.html`
+
+## 8. ขั้นตอนที่ 4 — `controller/HomeController.java`
+
+```java
+package com.example.demo.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class HomeController {
+
+    @GetMapping("/")
+    public String home(Model model) {
+        model.addAttribute("message", "Hello from Thymeleaf with a custom ViewResolver!");
+        return "home"; // ไม่ใช่ path ไฟล์ แค่ "ชื่อ view" เชิงตรรกะเท่านั้น
+    }
+}
+```
+
+สังเกตว่า Controller ใช้ `@Controller` (ไม่ใช่ `@RestController`) เพื่อให้ค่าที่ return ถูกตีความเป็น
+**ชื่อ view**, และ `ViewResolver` ที่เราลงทะเบียนไว้จะเป็นตัวจัดการแปลค่านี้ให้เอง
+
+## 9. ขั้นตอนที่ 5 — `application.properties`
+
+`src/main/resources/application.properties`:
+
+```properties
+server.port=8080
+spring.thymeleaf.cache=false
+```
+
+## 10. ขั้นตอนที่ 6 — `custom-templates/home.html`
+
+`src/main/resources/custom-templates/home.html`:
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Custom ViewResolver Demo</title>
+</head>
+<body>
+    <h1 th:text="${message}">Default message</h1>
+</body>
+</html>
+```
+
+## 11. ขั้นตอนที่ 7 — `.gitignore`
+
+```
+target/
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+```
+
+## 12. รันทดสอบ
+
+```bash
+mvn spring-boot:run
+```
+
+เปิดเบราว์เซอร์ไปที่ `http://localhost:8080/` ควรเห็นข้อความ:
+
+```
+Hello from Thymeleaf with a custom ViewResolver!
+```
+
+ถ้าไม่เห็น ให้ตรวจสอบว่าไฟล์ `home.html` อยู่ใน `custom-templates/` (ไม่ใช่ `templates/`) และชื่อไฟล์ตรงกับค่าที่ Controller คืนกลับ (`"home"`)
+
+## 13. อัปโหลดขึ้น GitHub
+
+1. สร้าง repository ใหม่บน GitHub (เช่นชื่อ `spring-thymeleaf-viewresolver-lab`) — **ไม่ต้อง** ติ๊ก "Add a README file" เพราะเรามีอยู่แล้ว
+2. ที่เครื่องของนักศึกษา ในโฟลเดอร์ `spring-thymeleaf-demo/`:
+
+```bash
+git init
+git add .
+git commit -m "Custom ViewResolver lab - CP353002"
+git branch -M main
+git remote add origin https://github.com/<username>/<repo-name>.git
+git push -u origin main
+```
+
+3. แนบลิงก์ repository ที่ส่งอาจารย์/ผู้ตรวจ
+
+## 14. ต่อยอด (ไม่บังคับ)
+
+- เพิ่ม `@GetMapping("/about")` ตัวใหม่ และไฟล์ `about.html` ใน `custom-templates/` เพื่อดูว่า path resolution ทำงานกับหลาย view อย่างไร
+- ลองสร้าง `ViewResolver` ตัวที่สองที่ `order(2)` ชี้ไปโฟลเดอร์อื่น แล้วสังเกตว่า Spring เลือก resolver ตัวไหนก่อน
+- เปลี่ยน `setSuffix(".html")` เป็นค่าอื่น แล้วดูว่าเกิด error อะไรเมื่อหาไฟล์ไม่เจอ (เข้าใจ failure mode ของ ViewResolver)
+
+## 15. แบบทดสอบ
+
+คำถามท้ายแล็ป (ปรนัย + อัตนัย) อยู่ในไฟล์แยกต่างหาก: **`ViewResolver_Quiz.docx`**
+
+## อ้างอิง
+
+- เนื้อหาต้นฉบับ: `springViewResolverConfiguration.ipynb`, `View in Spring Framework.pdf` (Punyphol Horata, College of Computing, KKU)
+- [Spring Framework — View Technologies docs](https://docs.spring.io/spring-framework/reference/web/webmvc-view.html)
+- [Thymeleaf official site](https://www.thymeleaf.org/)
