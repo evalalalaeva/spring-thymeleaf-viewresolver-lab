@@ -8,6 +8,19 @@
 
 ---
 
+## 0. ขอบเขตงานที่ต้องส่ง (อ่านก่อนเริ่ม)
+
+**เอกสารนี้เป็นเพียงคู่มือ/ใบงาน ไม่ใช่ repository ที่ต้องกด Fork** ไม่มี repo ต้นทางให้ fork หรือ clone มาต่อยอด — นักศึกษาต้อง**สร้าง GitHub repository ใหม่ที่ว่างเปล่าด้วยตัวเอง** แล้วสร้างไฟล์ทีละไฟล์ตามขั้นตอนในเอกสารนี้เอง (ดูหัวข้อ 4 เป็นต้นไป)
+
+สิ่งที่ต้องส่งมีทั้งหมด 2 อย่าง:
+
+1. **ลิงก์ GitHub repository** ของนักศึกษาเอง ที่มีอยู่ข้างในครบ:
+   - ไฟล์โค้ดทั้งหมด (`pom.xml`, `.java` 3 ไฟล์, `application.properties`, `custom-templates/home.html`)
+   - ไฟล์ `README.md` (จะใช้ฉบับนี้เก็บไว้ในโปรเจกต์เป็นเอกสารประกอบ หรือเขียนสรุปของตัวเองเพิ่มก็ได้ ไม่บังคับต้องเขียนใหม่)
+2. **ไฟล์ `ViewResolver_Quiz.docx`** ที่กรอกคำตอบและแนบภาพหน้าจอ (screenshot) ภาคปฏิบัติครบทุกข้อแล้ว — จะใส่ไว้ใน repo เดียวกัน หรือส่งแยกตามที่อาจารย์/ผู้สอนกำหนดก็ได้
+
+*** สำหรับไฟล์Docx อยากให้แนบมาในclassroom ด้วยเป็น link google drive เพื่อง่ายต่อTA ในการตรวจ ***
+
 ## 1. โจทย์ของแล็ป
 
 ให้นักศึกษาศึกษาวิธีกำหนด `ViewResolver` ของ Spring Boot ที่ใช้ Thymeleaf โดยแทนที่จะใช้โฟลเดอร์ template
@@ -299,5 +312,3 @@ git push
 - เนื้อหาต้นฉบับ: `springViewResolverConfiguration.ipynb`, `View in Spring Framework.pdf` (Punyphol Horata, College of Computing, KKU)
 - [Spring Framework — View Technologies docs](https://docs.spring.io/spring-framework/reference/web/webmvc-view.html)
 - [Thymeleaf official site](https://www.thymeleaf.org/)
-
-
